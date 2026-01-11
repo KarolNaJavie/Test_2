@@ -87,14 +87,14 @@ public class Main {
 //        Podaj imię i wzrost najwyższego chłopca oraz imię i wzrost najwyższej dziewczynki.
         List<Noworodek> najwyzszy = noworodki.stream()
                 .filter(n -> Objects.equals(n.getPlec(), "s"))
-                .sorted(Comparator.comparing(Noworodek::getWzrost))
+                .sorted(Comparator.comparing(Noworodek::getWzrost).reversed())
                 .limit(1)
                 .toList();
         System.out.println("Najwyzszy chlopiec: " + najwyzszy.getFirst().getImie() + " " + najwyzszy.getFirst().getWzrost() + " cm");
 
         List<Noworodek> najwyzsza = noworodki.stream()
                 .filter(n -> Objects.equals(n.getPlec(), "c"))
-                .sorted(Comparator.comparing(Noworodek::getWzrost))
+                .sorted(Comparator.comparing(Noworodek::getWzrost).reversed())
                 .limit(1)
                 .toList();
         System.out.println("Najwyzsza dziewczynka: " + najwyzsza.getFirst().getImie() + " " + najwyzsza.getFirst().getWzrost() + " cm");

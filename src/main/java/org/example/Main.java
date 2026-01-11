@@ -3,12 +3,11 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 
 public class Main {
     static void main() throws IOException {
@@ -25,18 +24,19 @@ public class Main {
 //        Identyfikator matki z pliku noworodki.txt odpowiada identyfikatorowi w pliku mamy.txt.
 //                Wykorzystując dane zawarte w plikach mamy.txt i noworodki.txt oraz dostępne narzędzia informatyczne,
 //                wykonaj poniższe polecenia.
-//        Podaj imię i wzrost najwyższego chłopca oraz imię i wzrost najwyższej dziewczynki.
-//        Uwaga: Jest tylko jeden taki chłopiec i tylko jedna taka dziewczynka.
-//        W którym dniu urodziło się najwięcej dzieci? Podaj datę i liczbę dzieci.
-//        Uwaga: Jest tylko jeden taki dzień.
-//                Podaj imiona kobiet w wieku poniżej 25 lat, które urodziły dzieci o wadze powyżej 4000 g.
-//                Podaj imiona i daty urodzenia dziewczynek, które odziedziczyły imię po matce.
+//        Podaj imię i wzrost najwyższego chłopca oraz imię i wzrost najwyższej dziewczynki.                             x
+//        Uwaga: Jest tylko jeden taki chłopiec i tylko jedna taka dziewczynka.                                          x
+//        W którym dniu urodziło się najwięcej dzieci? Podaj datę i liczbę dzieci.                                       x
+//        Uwaga: Jest tylko jeden taki dzień.                                                                            x
+//                Podaj imiona kobiet w wieku poniżej 25 lat, które urodziły dzieci o wadze powyżej 4000 g.              x
+//                Podaj imiona i daty urodzenia dziewczynek, które odziedziczyły imię po matce.                          x
 //        W pliku noworodki.txt zapisane są informacje o narodzinach bliźniąt.
 //        Bliźnięta można rozpoznać po tej samej dacie urodzenia i tym samym identyfikatorze matki.
 //        Pamiętaj, że przykładowo Jacek i Agatka oraz Agatka i Jacek to ta sama para.
 //        Możesz założyć, że w danych nie ma żadnych trojaczków, czworaczków, itd. Podaj daty, w których urodziły się bliźnięta.
 //        uwaga: nalezy zaimplementowac 2 kierunkowe relacje i uzywac tych relacji do podpunktow,
 //                pamietaj tez ze Matka ma liste dzieci a dziecko ma MATKE nie id Matki tylko matke.
+
         BufferedReader readerMatek = new BufferedReader(new FileReader("mamy.txt"));
         BufferedReader readerDziatek = new BufferedReader(new FileReader("noworodki.txt"));
 
@@ -53,7 +53,7 @@ public class Main {
                 int identyfikator = Integer.parseInt(matcher.group(1).trim());
                 String imie = matcher.group(2).trim();
                 int wiek = Integer.parseInt(matcher.group(3).trim());
-                Mama mama = new Mama(imie, wiek);
+                Mama mama = new Mama(imie, wiek, identyfikator);
                 matki.add(mama);
             }
         }
@@ -75,6 +75,16 @@ public class Main {
             }
         }
 
+        for (Mama mama : matki) {
+            for (Noworodek noworodek : noworodki) {
+                if (mama.getIdentyfikator() == noworodek.getIdentyfikatorMatki()) {
+                    mama.dodajDziecko(noworodek);
+                    noworodek.setMama(mama);
+                }
+            }
+        }
+
+//        Podaj imię i wzrost najwyższego chłopca oraz imię i wzrost najwyższej dziewczynki.
         List<Noworodek> najwyzszy = noworodki.stream()
                 .filter(n -> Objects.equals(n.getPlec(), "s"))
                 .sorted(Comparator.comparing(Noworodek::getWzrost))
@@ -88,5 +98,56 @@ public class Main {
                 .limit(1)
                 .toList();
         System.out.println("Najwyzsza dziewczynka: " + najwyzsza.getFirst().getImie() + " " + najwyzsza.getFirst().getWzrost() + " cm");
+
+//        W którym dniu urodziło się najwięcej dzieci? Podaj datę i liczbę dzieci.
+        noworodki.stream()
+                .collect(Collectors.groupingBy(Noworodek::getDataUrodzenia, Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .ifPresent(n -> System.out.println("\nNajwiecej dzieci urodzilo sie w dniu: " + n.getKey() + " (" + n.getValue() + " dzieci)\n"));
+
+//        Podaj imiona kobiet w wieku poniżej 25 lat, które urodziły dzieci o wadze powyżej 4000 g.
+
+        List<Mama> mlodeMatki = matki
+                .stream()
+                .filter(n -> n.getWiek() < 25)
+                .toList();
+
+        List<Noworodek> grubeNoworodki = mlodeMatki
+                .stream()
+                .flatMap(n -> n.getDzieci().stream())
+                .filter(n -> n.getWaga() > 4000)
+                .toList();
+
+        System.out.println("Kobiety ponizej 25 lat ktore urodzily dzieci powyzej 4000g: ");
+        grubeNoworodki.forEach(n -> System.out.println(n.getMama().getImie() + " urodzila: " + n.getImie() + " o wadze: " + n.getWaga() + "g!"));
+
+//       Podaj imiona i daty urodzenia dziewczynek, które odziedziczyły imię po matce.
+        List<Noworodek> dziewczynkiImiePoMatce = noworodki
+                .stream()
+                .filter(n -> n.getPlec().equals("c"))
+                .filter(n -> n.getImie().equals(n.getMama().getImie()))
+                .toList();
+
+        System.out.println("\nDziewczynki z imieniem po matce: ");
+        dziewczynkiImiePoMatce.forEach(n -> System.out.println(n.getImie() + " urodzona: " + n.getDataUrodzenia()));
+
+        //      daty urodzenia blizniat
+        Set<String> datyBlizniatID = new HashSet<>();
+        noworodki
+                .stream()
+                .collect(Collectors.groupingBy(Noworodek::idMatkiDzienUrodzienia, Collectors.counting()))
+                .entrySet().stream().filter(n -> n.getValue() > 1).forEach(n -> datyBlizniatID.add(n.getKey()));
+
+        System.out.println("\nDaty urodzenia blizniat: ");
+
+        for (String dataBlizniat : datyBlizniatID) {
+            Pattern pattern = Pattern.compile("(\\d+)(\\d{4}-\\d+-\\d+)");
+            Matcher matcher = pattern.matcher(dataBlizniat);
+
+            if (matcher.find()) {
+                System.out.println(matcher.group(2).trim());
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ public class Noworodek extends Czlowiek {
     private int waga;
     private int wzrost;
     private int identyfikatorMatki;
+    private Mama mama;
 
     public Noworodek(String imie, int identyfikator, String plec, String dataUrodzenia, int waga, int wzrost, int identyfikatorMatki) {
         super(imie);
@@ -38,16 +39,8 @@ public class Noworodek extends Czlowiek {
         return dataUrodzenia;
     }
 
-    public void setDataUrodzenia(String dataUrodzenia) {
-        this.dataUrodzenia = dataUrodzenia;
-    }
-
     public int getWaga() {
         return waga;
-    }
-
-    public void setWaga(int waga) {
-        this.waga = waga;
     }
 
     public int getWzrost() {
@@ -62,8 +55,16 @@ public class Noworodek extends Czlowiek {
         return identyfikatorMatki;
     }
 
-    public void setIdentyfikatorMatki(int identyfikatorMatki) {
-        this.identyfikatorMatki = identyfikatorMatki;
+    public Mama getMama() {
+        return mama;
+    }
+
+    public void setMama(Mama mama) {
+        this.mama = mama;
+    }
+
+    public String idMatkiDzienUrodzienia() {
+        return identyfikatorMatki + dataUrodzenia;
     }
 }
 //identyfikator, płeć (c – córka, s – syn), imię, data urodzenia, waga [g], wzrost [cm] oraz identyfikator matki.

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 
 public class Main {
-    static void main() throws IOException {
+    static void main() {
 //        Polecenie:
 //        Pliki noworodki.txt oraz mamy.txt zawierają dane o dzieciach i ich matkach.
 //        W pliku noworodki.txt każdy wiersz zawiera następujące informacje o jednym dziecku,
@@ -37,11 +37,22 @@ public class Main {
 //        uwaga: nalezy zaimplementowac 2 kierunkowe relacje i uzywac tych relacji do podpunktow,
 //                pamietaj tez ze Matka ma liste dzieci a dziecko ma MATKE nie id Matki tylko matke.
 
-        BufferedReader readerMatek = new BufferedReader(new FileReader("mamy.txt"));
-        BufferedReader readerDziatek = new BufferedReader(new FileReader("noworodki.txt"));
 
-        List<String> tekstowySpisMam = readerMatek.readAllLines();
-        List<String> tekstowySpisDzieci = readerDziatek.readAllLines();
+        List<String> tekstowySpisMam = new ArrayList<>();
+        List<String> tekstowySpisDzieci = new ArrayList<>();
+
+        try (BufferedReader readerMatek = new BufferedReader(new FileReader("mamy.txt"));) {
+            tekstowySpisMam = readerMatek.readAllLines();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try (BufferedReader readerDziatek = new BufferedReader(new FileReader("noworodki.txt"));) {
+            tekstowySpisDzieci = readerDziatek.readAllLines();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         List<Mama> matki = new ArrayList<>();
         List<Noworodek> noworodki = new ArrayList<>();
 
@@ -75,29 +86,25 @@ public class Main {
             }
         }
 
-        for (Mama mama : matki) {
-            for (Noworodek noworodek : noworodki) {
-                if (mama.getIdentyfikator() == noworodek.getIdentyfikatorMatki()) {
-                    mama.dodajDziecko(noworodek);
-                    noworodek.setMama(mama);
-                }
+        Map<Integer, Mama> matkiID = matki.stream().collect(Collectors.toMap(Mama::getIdentyfikator, n -> n));
+        for (Noworodek noworodek : noworodki) {
+            Mama matka = matkiID.get(noworodek.getIdentyfikatorMatki());
+            if (matka != null) {
+                matka.dodajDziecko(noworodek);
+                noworodek.setMama(matka);
             }
         }
 
 //        Podaj imię i wzrost najwyższego chłopca oraz imię i wzrost najwyższej dziewczynki.
-        List<Noworodek> najwyzszy = noworodki.stream()
+        Optional<Noworodek> najwyzszy = noworodki.stream()
                 .filter(n -> Objects.equals(n.getPlec(), "s"))
-                .sorted(Comparator.comparing(Noworodek::getWzrost).reversed())
-                .limit(1)
-                .toList();
-        System.out.println("Najwyzszy chlopiec: " + najwyzszy.getFirst().getImie() + " " + najwyzszy.getFirst().getWzrost() + " cm");
+                .max(Comparator.comparing(Noworodek::getWzrost));
+        najwyzszy.ifPresent(n -> System.out.println("Najwyzszy chlopiec: " + najwyzszy.get().getImie() + " " + najwyzszy.get().getWzrost() + " cm"));
 
-        List<Noworodek> najwyzsza = noworodki.stream()
+        Optional<Noworodek> najwyzsza = noworodki.stream()
                 .filter(n -> Objects.equals(n.getPlec(), "c"))
-                .sorted(Comparator.comparing(Noworodek::getWzrost).reversed())
-                .limit(1)
-                .toList();
-        System.out.println("Najwyzsza dziewczynka: " + najwyzsza.getFirst().getImie() + " " + najwyzsza.getFirst().getWzrost() + " cm");
+                .max(Comparator.comparing(Noworodek::getWzrost));
+        najwyzsza.ifPresent(n -> System.out.println("Najwyzsza dziewczynka: " + n.getImie() + " " + najwyzsza.get().getWzrost() + " cm"));
 
 //        W którym dniu urodziło się najwięcej dzieci? Podaj datę i liczbę dzieci.
         noworodki.stream()
@@ -132,22 +139,16 @@ public class Main {
         System.out.println("\nDziewczynki z imieniem po matce: ");
         dziewczynkiImiePoMatce.forEach(n -> System.out.println(n.getImie() + " urodzona: " + n.getDataUrodzenia()));
 
-        //      daty urodzenia blizniat
-        Set<String> datyBlizniatID = new HashSet<>();
-        noworodki
-                .stream()
-                .collect(Collectors.groupingBy(Noworodek::idMatkiDzienUrodzienia, Collectors.counting()))
-                .entrySet().stream().filter(n -> n.getValue() > 1).forEach(n -> datyBlizniatID.add(n.getKey()));
+//      Daty Blizniat
 
+        Set<String> datyBlizniat = noworodki.stream().filter(n1 -> noworodki.stream()
+                        .anyMatch(n2 -> Objects.equals(n1.getDataUrodzenia(), n2.getDataUrodzenia())
+                                && Objects.equals(n1.getIdentyfikatorMatki(), n2.getIdentyfikatorMatki())
+                                && !Objects.equals(n1.getImie(), n2.getImie())))
+                .map(Noworodek::getDataUrodzenia)
+                .collect(Collectors.toSet());
         System.out.println("\nDaty urodzenia blizniat: ");
+        datyBlizniat.forEach(System.out::println);
 
-        for (String dataBlizniat : datyBlizniatID) {
-            Pattern pattern = Pattern.compile("(\\d+)(\\d{4}-\\d+-\\d+)");
-            Matcher matcher = pattern.matcher(dataBlizniat);
-
-            if (matcher.find()) {
-                System.out.println(matcher.group(2).trim());
-            }
-        }
     }
 }

@@ -63,8 +63,5 @@ public class Noworodek extends Czlowiek {
         this.mama = mama;
     }
 
-    public String idMatkiDzienUrodzienia() {
-        return identyfikatorMatki + dataUrodzenia;
-    }
 }
 //identyfikator, płeć (c – córka, s – syn), imię, data urodzenia, waga [g], wzrost [cm] oraz identyfikator matki.

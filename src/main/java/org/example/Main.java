@@ -99,12 +99,12 @@ public class Main {
         Optional<Noworodek> najwyzszy = noworodki.stream()
                 .filter(n -> Objects.equals(n.getPlec(), "s"))
                 .max(Comparator.comparing(Noworodek::getWzrost));
-        najwyzszy.ifPresent(n -> System.out.println("Najwyzszy chlopiec: " + najwyzszy.get().getImie() + " " + najwyzszy.get().getWzrost() + " cm"));
+        najwyzszy.ifPresent(n -> System.out.println("Najwyzszy chlopiec: " + n.getImie() + " " + n.getWzrost() + " cm"));
 
         Optional<Noworodek> najwyzsza = noworodki.stream()
                 .filter(n -> Objects.equals(n.getPlec(), "c"))
                 .max(Comparator.comparing(Noworodek::getWzrost));
-        najwyzsza.ifPresent(n -> System.out.println("Najwyzsza dziewczynka: " + n.getImie() + " " + najwyzsza.get().getWzrost() + " cm"));
+        najwyzsza.ifPresent(n -> System.out.println("Najwyzsza dziewczynka: " + n.getImie() + " " + n.getWzrost() + " cm"));
 
 //        W którym dniu urodziło się najwięcej dzieci? Podaj datę i liczbę dzieci.
         noworodki.stream()
@@ -141,14 +141,30 @@ public class Main {
 
 //      Daty Blizniat
 
-        Set<String> datyBlizniat = noworodki.stream().filter(n1 -> noworodki.stream()
-                        .anyMatch(n2 -> Objects.equals(n1.getDataUrodzenia(), n2.getDataUrodzenia())
-                                && Objects.equals(n1.getIdentyfikatorMatki(), n2.getIdentyfikatorMatki())
-                                && !Objects.equals(n1.getImie(), n2.getImie())))
-                .map(Noworodek::getDataUrodzenia)
-                .collect(Collectors.toSet());
+//        Set<String> datyBlizniat = noworodki.stream().filter(n1 -> noworodki.stream()
+//                        .anyMatch(n2 -> Objects.equals(n1.getDataUrodzenia(), n2.getDataUrodzenia())
+//                                && Objects.equals(n1.getIdentyfikatorMatki(), n2.getIdentyfikatorMatki())
+//                                && !Objects.equals(n1.getImie(), n2.getImie())))
+//                .map(Noworodek::getDataUrodzenia)
+//                .collect(Collectors.toSet());
+        List<String> daty = new ArrayList<>();
+        Map<String, List<Noworodek>> datyBlizniaki = noworodki.stream()
+                .collect(Collectors.groupingBy(n -> n.getDataUrodzenia() + "x" + n.getIdentyfikatorMatki()))
+                .entrySet()
+                .stream()
+                .filter(n -> n.getValue().size() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        for (Map.Entry<String, List<Noworodek>> data : datyBlizniaki.entrySet()) {
+            daty.add(data.getKey());
+        }
         System.out.println("\nDaty urodzenia blizniat: ");
-        datyBlizniat.forEach(System.out::println);
+        for (String string : daty) {
+            Pattern pattern = Pattern.compile("(.+)(x)(\\d)");
+            Matcher matcher = pattern.matcher(string);
+            while (matcher.find()) {
+                System.out.println(matcher.group(1).trim());
+            }
 
+        }
     }
 }

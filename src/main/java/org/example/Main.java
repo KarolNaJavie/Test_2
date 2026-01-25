@@ -18,7 +18,7 @@ public class Main {
 //        wzrost [cm] oraz identyfikator matki.
 //                Przykład:
 //        1 c Agnieszka 20-lis-1999 2450 48 33
-//        W pliku mamy.txt każdy wiersz zawiera informacje o jednej kobiecie, rozdzielone znakami odstępu: identyfikator matki, imię, wiek.
+//        W pliku mamy.txt  każdy wiersz zawiera informacje o jednej kobiecie, rozdzielone znakami odstępu: identyfikator matki, imię, wiek.
 //        Przykład:
 //        1 Agata 25
 //        Identyfikator matki z pliku noworodki.txt odpowiada identyfikatorowi w pliku mamy.txt.
